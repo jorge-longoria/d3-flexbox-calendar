@@ -1,4 +1,5 @@
 <meta charset="utf-8" />
+<!-- <meta http-equiv="refresh" content="10"> -->
 <style>
     body {
         font-size: 16px;
@@ -31,11 +32,11 @@
     .weekBox, .weekLabelBox {
         display: flex;
         flex-direction: row;
-        background-color: cornsilk;
     }
     .weekLabelBox {
         border-top: 1px solid black;
         margin-left: -2px;
+        background-color: cornsilk;
     }
     .weekLabel {
         font-size:8px;
@@ -71,47 +72,56 @@ const monthNames = ["January","February","March",
 
 const weekdayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
-//Page Title
-d3.select('#title').text("📅 D3.js/Flexbox "+d3.timeYear().getUTCFullYear()+" Calendar");  
+
+//Dynamic Values
+let months, weeks, days;
+let monthLabels, weekLabels, dayLabels;
+
+
+//Displays current year at the top of the calendar.
+d3.select('#title').text("📅 "+d3.timeYear().getUTCFullYear()+" Calendar"+" 📅");  
 
 
 //Starting to build the framework of the calendar year...
 
 //Month Boxes
-let months = 
+months = 
     d3.select('#main')
     .selectAll('div')                                                       
     .data(d3.timeMonth.range(
         d3.timeYear.floor(new Date()),                                                                     //year start
         d3.timeYear.ceil(new Date()))                                                                      //year end
     )
-    .enter().append('div').append('div')  
-    .attr('id', d => monthNames[d.getMonth()])                                                             //ex. d3.select('#January')...
+    .enter().append('div')  
+    .attr('id', datum => monthNames[datum.getMonth()])                                                     //ex. d3.select('#January')...
     .attr('class', 'monthBox');
 
 
 //Month labels
-let monthLabels = 
+monthLabels = 
     months.append('div')
     .attr('class', 'monthLabel')
     .text(d => monthNames[d.getMonth()]);
 
 
+//Weekday Labels
+weekLabels = 
+    months.select('div')
+        .append('div')
+        .attr('class', 'weekLabelBox')
+        .selectAll('div')
+        .data(weekdayNames)
+        .enter().append('div')
+        .attr('class', 'weekLabel')
+        .text(datum => datum)
+        .style('width', daySquareSide);
 
 //Building up the weeks...
-months.data().forEach(currentMonth => {
-    //Week Labels
-    d3.select("#"+monthNames[currentMonth.getMonth()]).select('div')
-    .append('div').attr('class', 'weekLabelBox')
-    .selectAll('div')
-    .data(weekdayNames)
-    .enter().append('div')
-    .attr('class', 'weekLabel')
-    .text(datum => datum)
-    .style('width', daySquareSide);
+months.each((currentMonth,monthIndex) => {
 
     //Week Boxes        
-    let weeks = d3.select("#"+monthNames[currentMonth.getMonth()])
+    weeks = 
+        d3.select("#"+monthNames[monthIndex])
         .append('div')
         .selectAll('div')
         .data( d => d3.timeWeek.range(
@@ -120,16 +130,17 @@ months.data().forEach(currentMonth => {
                 )
         )
         .enter().append('div')
-        .attr('id', (d,i) => monthNames[currentMonth.getMonth()] + "Week" + i)                  //ex. d3.select('#JanuaryWeek3')
+        .attr('id', (datum,index) => monthNames[monthIndex] + "Week" + index)      //ex. d3.select('#JanuaryWeek3')
         .attr('class', 'weekBox')
-        .style('background-color', (d,i,a) => i % 2 == 0 ? "#FFF" : "#EFF");                    //alternating week colors
+        .style('background-color', (datum,index) => index % 2 == 0 ? "#FFF" : "#EFF");          //alternating week colors
         
 
     //Building up the days...
-    weeks.data().forEach((currentWeek,weekIndex) => { 
+    weeks.each((currentWeek,weekIndex) => {
 
             //Day Boxes
-            let days = d3.select('#'+monthNames[currentMonth.getMonth()] + "Week" + weekIndex)
+            days = 
+                d3.select('#'+monthNames[monthIndex] + "Week" + weekIndex)
                 .selectAll('div')
                 .data( datum => d3.timeDay.range(
                         new Date(datum.getUTCFullYear(),datum.getMonth(),datum.getDate()),
@@ -142,10 +153,11 @@ months.data().forEach(currentMonth => {
                 .style('width', daySquareSide)
                 .style('background-color', datum => {
                     let bgColor;
+
                     if( currentMonth.getMonth() == datum.getMonth() )                           //if the selected date is in the relevant month...
                         if( datum.toDateString() === new Date().toDateString() )
-                            bgColor = "#FF5"                                                    //...highlight the current day
-                        else
+                            bgColor = "#FF5"
+                        else                                                                    //...highlight the current day
                             bgColor = datum.backgroundColor                                     //...default color, if not current day
                     else
                         bgColor = "#EEE"                                                        //...blank out the non-relevant days in a month box
@@ -154,7 +166,8 @@ months.data().forEach(currentMonth => {
 
 
             //Day Labels
-            days.text( datum => {
+            dayLabels = 
+                days.text( datum => {
                     let dateString;
                     if( currentMonth.getMonth() == datum.getMonth() ) {
                         dateString = datum.getDate();
