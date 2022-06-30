@@ -63,12 +63,12 @@
 
 <script>
 //Constant Values
-const daySquareSide = '32px';                                                                                  //cell size
+const daySquareSide = '32px';                                                                   //cell size
 
 const monthNames = ["January","February","March",
                     "April",   "May",     "June",
                     "July",    "August",  "September",
-                    "October", "November","December"];                                                         //month aliases
+                    "October", "November","December"];                                          //month aliases
 
 const weekdayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
@@ -89,11 +89,11 @@ months =
     d3.select('#main')
     .selectAll('div')                                                       
     .data(d3.timeMonth.range(
-        d3.timeYear.floor(new Date()),                                                                     //year start
-        d3.timeYear.ceil(new Date()))                                                                      //year end
+        d3.timeYear.floor(new Date()),                                                          //year start
+        d3.timeYear.ceil(new Date()))                                                           //year end
     )
     .enter().append('div')  
-    .attr('id', datum => monthNames[datum.getMonth()])                                                     //ex. d3.select('#January')...
+    .attr('id', datum => monthNames[datum.getMonth()])                                         //ex. d3.select('#January')...
     .attr('class', 'monthBox');
 
 
@@ -130,7 +130,7 @@ months.each((currentMonth,monthIndex) => {
                 )
         )
         .enter().append('div')
-        .attr('id', (datum,index) => monthNames[monthIndex] + "Week" + index)      //ex. d3.select('#JanuaryWeek3')
+        .attr('id', (datum,index) => monthNames[monthIndex] + "Week" + index)                   //ex. d3.select('#JanuaryWeek3')
         .attr('class', 'weekBox')
         .style('background-color', (datum,index) => index % 2 == 0 ? "#FFF" : "#EFF");          //alternating week colors
         
