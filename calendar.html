@@ -92,8 +92,7 @@ months =
         d3.timeYear.floor(new Date()),                                                          //year start
         d3.timeYear.ceil(new Date()))                                                           //year end
     )
-    .enter().append('div')  
-    .attr('id', datum => monthNames[datum.getMonth()])                                         //ex. d3.select('#January')...
+    .enter().append('div') 
     .attr('class', 'monthBox');
 
 
@@ -121,16 +120,16 @@ months.each((currentMonth,monthIndex) => {
 
     //Week Boxes        
     weeks = 
-        d3.select("#"+monthNames[monthIndex])
+        d3.selectAll('.monthBox').filter(d => d == currentMonth)
         .append('div')
         .selectAll('div')
-        .data( d => d3.timeWeek.range(
-                new Date(d.getUTCFullYear(),d.getMonth(),0-d.getDay()),                         //includes the week prior to month start...
-                new Date(d.getUTCFullYear(),d.getMonth()+1)                                     //      ...up to the last week of the month.
-                )
+        .data( d => 
+            d3.timeWeek.range(
+                d3.timeWeek.offset(d,d.getDay()==0 ? 0:-1),                         //includes the week prior to month start...
+                d3.timeMonth.offset(d,1)                                     //      ...up to the last week of the month.
+            )
         )
         .enter().append('div')
-        .attr('id', (datum,index) => monthNames[monthIndex] + "Week" + index)                   //ex. d3.select('#JanuaryWeek3')
         .attr('class', 'weekBox')
         .style('background-color', (datum,index) => index % 2 == 0 ? "#FFF" : "#EFF");          //alternating week colors
         
@@ -140,12 +139,13 @@ months.each((currentMonth,monthIndex) => {
 
             //Day Boxes
             days = 
-                d3.select('#'+monthNames[monthIndex] + "Week" + weekIndex)
+                d3.selectAll('.weekBox').filter(d => d == currentWeek)
                 .selectAll('div')
-                .data( datum => d3.timeDay.range(
-                        new Date(datum.getUTCFullYear(),datum.getMonth(),datum.getDate()),
-                        new Date(datum.getUTCFullYear(),datum.getMonth(),datum.getDate()+7)     //create a range of days from the week start
-                        )
+                .data( 
+                    datum => d3.timeDay.range(
+                        datum,
+                        d3.timeDay.offset(datum,7)     //create a range of days from the week start
+                    )
                 )
                 .enter().append('div')
                 .attr('class', 'dateBox')
@@ -167,7 +167,7 @@ months.each((currentMonth,monthIndex) => {
 
             //Day Labels
             dayLabels = 
-                days.text( datum => {
+                days.text( datum => { console.log(datum);
                     let dateString;
                     if( currentMonth.getMonth() == datum.getMonth() ) {
                         dateString = datum.getDate();
