@@ -1,5 +1,5 @@
 <meta charset="utf-8" />
-<!-- <meta http-equiv="refresh" content="10"> -->
+<!-- <meta http-equiv="refresh" content="3600"> -->
 <style>
     body {
         font-size: 16px;
@@ -8,26 +8,22 @@
         margin: auto;
         text-align: center;
     }
-    #main { 
-        display: flex;
-        flex-wrap: wrap;
-        width: 750px;
+    #main {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        grid-auto-rows: minmax(200px, auto);
     }
     .monthBox {
-        height: fit-content;
-        width:  fit-content;
         font-size: 12px;
         font-weight: bold;
-        padding-bottom: 10px;
-        padding-right: 10px;
-        margin-bottom: -1px;
     }
     .monthLabel {
         background-color: #BBE;
         border: 1px solid black;
+        height: fit-content;
         margin-bottom: -1px;
         margin-right: -1px;
-        padding-left: 2px; 
     }
     .weekBox, .weekLabelBox {
         display: flex;
@@ -35,7 +31,6 @@
     }
     .weekLabelBox {
         border-top: 1px solid black;
-        margin-left: -2px;
         background-color: cornsilk;
     }
     .weekLabel {
@@ -167,7 +162,7 @@ months.each((currentMonth,monthIndex) => {
 
             //Day Labels
             dayLabels = 
-                days.text( datum => { console.log(datum);
+                days.text( datum => {
                     let dateString;
                     if( currentMonth.getMonth() == datum.getMonth() ) {
                         dateString = datum.getDate();
