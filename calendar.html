@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <meta charset="utf-8" />
 <!-- <meta http-equiv="refresh" content="3600"> -->
 <style>
@@ -10,13 +11,18 @@
     }
     #main {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(8, 1fr);
         gap: 10px;
-        grid-auto-rows: minmax(200px, auto);
+        /* grid-auto-rows: minmax(200px, auto); */
+    }
+    .yearBox {
+        display: flex;
+        flex-direction: row;
     }
     .monthBox {
         font-size: 12px;
         font-weight: bold;
+        margin-right: 10px;
     }
     .monthLabel {
         background-color: #BBE;
@@ -27,7 +33,7 @@
     }
     .weekBox, .weekLabelBox {
         display: flex;
-        flex-direction: row;
+        flex-direction: row; 
     }
     .weekLabelBox {
         border-top: 1px solid black;
@@ -40,10 +46,17 @@
         margin-right: 0.17ch;
     }
     .dateBox {
-        font-size: 9px;
+        font-size: 7px;
         font-weight: normal;
         text-align: justify;
         border: 1px solid black; 
+        margin-bottom: -1px;
+        margin-right: -1px;  
+    }
+    .ignoreThis {
+        visibility: hidden;
+        border: 1px solid white;
+        z-index: -9; 
         margin-bottom: -1px;
         margin-right: -1px;  
     }
@@ -58,7 +71,7 @@
 
 <script>
 //Constant Values
-const daySquareSide = '32px';                                                                   //cell size
+const daySquareSide = '20px';                                                                   //cell size
 
 const monthNames = ["January","February","March",
                     "April",   "May",     "June",
@@ -74,111 +87,152 @@ let monthLabels, weekLabels, dayLabels;
 
 
 //Displays current year at the top of the calendar.
-d3.select('#title').text("📅 "+d3.timeYear().getUTCFullYear()+" Calendar"+" 📅");  
+d3.select('#title').text("Nominal Broad US Dollar Index");  
 
 
-//Starting to build the framework of the calendar year...
-
-//Month Boxes
-months = 
-    d3.select('#main')
-    .selectAll('div')                                                       
-    .data(d3.timeMonth.range(
-        d3.timeYear.floor(new Date()),                                                          //year start
-        d3.timeYear.ceil(new Date()))                                                           //year end
+//Starting to build the framework of the calendar years...
+console.time('render calendar')
+let years = d3.select("#main")
+    .selectAll('div')
+    .data(d3.timeYear.range(
+        d3.timeYear.floor(new Date(2017,1,1)),                                                          //year start
+        d3.timeYear.ceil(new Date())) 
     )
-    .enter().append('div') 
-    .attr('class', 'monthBox');
+    .enter().append('div')
+    .text(d => d.getUTCFullYear())
+    .style('font-size', '24px')
+    .append('div')
+    .attr('class', 'yearBox');
 
-
-//Month labels
-monthLabels = 
-    months.append('div')
-    .attr('class', 'monthLabel')
-    .text(d => monthNames[d.getMonth()]);
-
-
-//Weekday Labels
-weekLabels = 
-    months.select('div')
-        .append('div')
-        .attr('class', 'weekLabelBox')
-        .selectAll('div')
-        .data(weekdayNames)
-        .enter().append('div')
-        .attr('class', 'weekLabel')
-        .text(datum => datum)
-        .style('width', daySquareSide);
-
-//Building up the weeks...
-months.each((currentMonth,monthIndex) => {
-
-    //Week Boxes        
-    weeks = 
-        d3.selectAll('.monthBox').filter(d => d == currentMonth)
-        .append('div')
-        .selectAll('div')
-        .data( d => 
-            d3.timeWeek.range(
-                d3.timeWeek.offset(d,d.getDay()==0 ? 0:-1),                         //includes the week prior to month start...
-                d3.timeMonth.offset(d,1)                                     //      ...up to the last week of the month.
-            )
+years.each(year => {
+    //Month Boxes
+    months = 
+        d3.selectAll('.yearBox').filter(d => d == year)
+        .selectAll('div')                                                       
+        .data(d3.timeMonth.range(
+            d3.timeYear.floor(new Date(year.getUTCFullYear(),1,0)),                                                          //year start
+            d3.timeYear.ceil(new Date(year.getUTCFullYear(),1,0)))                                                           //year end
         )
-        .enter().append('div')
-        .attr('class', 'weekBox')
-        .style('background-color', (datum,index) => index % 2 == 0 ? "#FFF" : "#EFF");          //alternating week colors
-        
+        .enter().append('div') 
+        .attr('class', 'monthBox');
 
-    //Building up the days...
-    weeks.each((currentWeek,weekIndex) => {
+    //Month labels
+    monthLabels = 
+        months.append('div')
+        .attr('class', 'monthLabel')
+        .text(d => monthNames[d.getMonth()]);
 
-            //Day Boxes
-            days = 
-                d3.selectAll('.weekBox').filter(d => d == currentWeek)
-                .selectAll('div')
-                .data( 
-                    datum => d3.timeDay.range(
-                        datum,
-                        d3.timeDay.offset(datum,7)     //create a range of days from the week start
-                    )
+
+    //Weekday Labels
+    weekLabels = 
+        months.select('div')
+            .append('div')
+            .attr('class', 'weekLabelBox')
+            .selectAll('div')
+            .data(weekdayNames)
+            .enter().append('div')
+            .attr('class', 'weekLabel')
+            .text(datum => datum)
+            .style('width', daySquareSide);
+
+    //Building up the weeks...
+    months.each((currentMonth,monthIndex) => {
+
+        //Week Boxes        
+        weeks = 
+            d3.selectAll('.monthBox').filter(d => d == currentMonth)
+            .append('div')
+            .selectAll('div')
+            .data( d => 
+                d3.timeWeek.range(
+                    d3.timeWeek.offset(d,d.getDay()==0 ? 0:-1),                         //includes the week prior to month start...
+                    d3.timeMonth.offset(d,1)                                     //      ...up to the last week of the month.
                 )
-                .enter().append('div')
-                .attr('class', 'dateBox')
-                .style('height', daySquareSide)
-                .style('width', daySquareSide)
-                .style('background-color', datum => {
-                    let bgColor;
+            )
+            .enter().append('div')
+            .attr('class', 'weekBox')
+            //.style('background-color', (datum,index) => index % 2 == 0 ? "#FFF" : "#EFF");          //alternating week colors
+            
 
-                    if( currentMonth.getMonth() == datum.getMonth() )                           //if the selected date is in the relevant month...
-                        if( datum.toDateString() === new Date().toDateString() )
-                            bgColor = "#FF5"
-                        else                                                                    //...highlight the current day
-                            bgColor = datum.backgroundColor                                     //...default color, if not current day
-                    else
-                        bgColor = "#EEE"                                                        //...blank out the non-relevant days in a month box
-                    return bgColor
-                });
+        //Building up the days...
+        weeks.each((currentWeek,weekIndex) => {
+
+                //Day Boxes
+                days = 
+                    d3.selectAll('.weekBox').filter(d => d == currentWeek)
+                    .selectAll('div')
+                    .data( 
+                        datum => d3.timeDay.range(
+                            datum,
+                            d3.timeDay.offset(datum,7)     //create a range of days from the week start
+                        )
+                    )
+                    .enter().append('div')
+                    .attr('class', datum => {
+                        if(currentMonth.getMonth() == datum.getMonth())
+                            return 'dateBox date' + datum.toDateString().replaceAll(" ", "_") 
+                        else
+                            return 'ignoreThis'
+                    })
+                    .style('height', daySquareSide)
+                    .style('width', daySquareSide)
+                    .style('background-color', datum => {
+                        let bgColor;
+
+                        if( currentMonth.getMonth() == datum.getMonth() )                           //if the selected date is in the relevant month...
+                            if( datum.toDateString() === new Date().toDateString() )
+                                bgColor = "#FF5"
+                            else                                                                    //...highlight the current day
+                                bgColor = datum.backgroundColor                                     //...default color, if not current day
+                        return bgColor
+                    });
 
 
-            //Day Labels
-            dayLabels = 
-                days.text( datum => {
-                    let dateString;
-                    if( currentMonth.getMonth() == datum.getMonth() ) {
-                        dateString = datum.getDate();
+                //Day Labels
+                dayLabels = 
+                    days.text( datum => {
+                        let dateString;
+                        if( currentMonth.getMonth() == datum.getMonth() ) {
+                            dateString = datum.getDate();
+                        }
+                        return dateString
+                    } );
                     
-                        if(datum.getMonth() == 9 && datum.getDate() == 31)
-                            dateString += "🎃"
-                        if(datum.getMonth() == 10 && datum.getDay() == 4 && weekIndex == 3)
-                            dateString += "🦃"
-                        if(datum.getMonth() == 11 && datum.getDate() == 25)
-                            dateString += "🎄"
-                    }
-                    return dateString
-                } );
-                
-    })
+        })
+    });
 });
+console.timeEnd('render calendar')
 
-    d3.select('body').append('div').text("Happy New Year 🥳")
+console.time('load data')
+d3.csv('NominalBroadUSDollarIndex.csv')
+.then(dataArray => { 
+    
+    let maxPriceChange = d3.max(dataArray.map(d => +d.dollar_index));
+
+    let normalizedDollarIndex = dataArray.map(d => +d.dollar_index/maxPriceChange);
+
+    let max = d3.max(normalizedDollarIndex);
+    let min = d3.min(normalizedDollarIndex);
+
+    let colorScale = d3.scaleSequential(d3.interpolatePiYG).domain([min,max]);
+    
+    //console.table(normalizedDollarIndex);
+    console.timeEnd('load data')
+
+    console.time('render colors')
+    dataArray.map(datum => {
+        let tradingDate = new Date(datum.date);
+        
+        let calendarDate = 
+            d3.selectAll('.dateBox.date' + tradingDate.toDateString().replaceAll(" ", "_"))
+            .nodes()
+            .map(d => {  
+                let bgColor = colorScale(datum.dollar_index/maxPriceChange);
+
+                d.style.backgroundColor = bgColor || "#FFF"
+            })
+    }) 
+    
+    console.timeEnd('render colors')
+});
 </script>
