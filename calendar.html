@@ -11,13 +11,13 @@
     }
     #main {
         display: grid;
-        grid-template-rows: repeat(8, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         gap: 10px;
         /* grid-auto-rows: minmax(200px, auto); */
     }
     .yearBox {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
     }
     .monthBox {
         font-size: 12px;
@@ -30,6 +30,7 @@
         height: fit-content;
         margin-bottom: -1px;
         margin-right: -1px;
+        display: none
     }
     .weekBox, .weekLabelBox {
         display: flex;
@@ -143,7 +144,7 @@ years.each(year => {
             d3.selectAll('.monthBox').filter(d => d == currentMonth)
             .append('div')
             .selectAll('div')
-            .data( d => 
+            .data(d =>
                 d3.timeWeek.range(
                     d3.timeWeek.offset(d,d.getDay()==0 ? 0:-1),                         //includes the week prior to month start...
                     d3.timeMonth.offset(d,1)                                     //      ...up to the last week of the month.
@@ -214,7 +215,7 @@ d3.csv('NominalBroadUSDollarIndex.csv')
     let max = d3.max(normalizedDollarIndex);
     let min = d3.min(normalizedDollarIndex);
 
-    let colorScale = d3.scaleSequential(d3.interpolatePiYG).domain([min,max]);
+    let colorScale = d3.scaleSequential(d3.interpolateYlGn).domain([min,max]);
     
     //console.table(normalizedDollarIndex);
     console.timeEnd('load data')
