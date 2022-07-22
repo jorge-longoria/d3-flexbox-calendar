@@ -47,6 +47,13 @@
         margin-bottom: -1px;
         margin-right: -1px;  
     }
+    .ignoreThis {
+        visibility: hidden;
+        border: 1px solid white;
+        z-index: -9; 
+        margin-bottom: -1px;
+        margin-right: -1px;  
+    }
 </style>
 <script src="https://d3js.org/d3.v7.min.js"></script>
 
@@ -125,8 +132,7 @@ months.each((currentMonth,monthIndex) => {
             )
         )
         .enter().append('div')
-        .attr('class', 'weekBox')
-        .style('background-color', (datum,index) => index % 2 == 0 ? "#FFF" : "#EFF");          //alternating week colors
+        .attr('class', 'weekBox');
         
 
     //Building up the days...
@@ -143,19 +149,24 @@ months.each((currentMonth,monthIndex) => {
                     )
                 )
                 .enter().append('div')
-                .attr('class', 'dateBox')
+                .attr('class', datum => {
+                    if(currentMonth.getMonth() == datum.getMonth())
+                        return 'dateBox date' + datum.toDateString().replaceAll(" ", "_") 
+                    else
+                        return 'ignoreThis'
+                })
                 .style('height', daySquareSide)
                 .style('width', daySquareSide)
                 .style('background-color', datum => {
                     let bgColor;
 
-                    if( currentMonth.getMonth() == datum.getMonth() )                           //if the selected date is in the relevant month...
+                    if( currentMonth.getMonth() == datum.getMonth() ) 
+                        if( weekIndex % 2 === 0 )
+                            bgColor = "#FFF"    
+                        if( weekIndex % 2 === 1 )
+                            bgColor = "#EFF"                             
                         if( datum.toDateString() === new Date().toDateString() )
                             bgColor = "#FF5"
-                        else                                                                    //...highlight the current day
-                            bgColor = datum.backgroundColor                                     //...default color, if not current day
-                    else
-                        bgColor = "#EEE"                                                        //...blank out the non-relevant days in a month box
                     return bgColor
                 });
 
