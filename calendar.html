@@ -9,6 +9,9 @@
         margin: auto;
         text-align: center;
     }
+    #title {
+        font-size: 24px;
+    }
     #main {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
@@ -216,9 +219,6 @@ d3.csv('NominalBroadUSDollarIndex.csv')
     let min = d3.min(normalizedDollarIndex);
 
     let colorScale = d3.scaleSequential(d3.interpolateYlGn).domain([min,max]);
-    
-    //console.table(normalizedDollarIndex);
-    console.timeEnd('load data')
 
     console.time('render colors')
     dataArray.map(datum => {
@@ -226,12 +226,42 @@ d3.csv('NominalBroadUSDollarIndex.csv')
         
         let calendarDate = 
             d3.selectAll('.dateBox.date' + tradingDate.toDateString().replaceAll(" ", "_"))
-            .nodes()
-            .map(d => {  
-                let bgColor = colorScale(datum.dollar_index/maxPriceChange);
+                .style('background-color', d => {
+                        let bgColor = colorScale(datum.dollar_index/maxPriceChange);
 
-                d.style.backgroundColor = bgColor || "#FFF"
-            })
+                        return bgColor || '#FFF'
+                    })
+    }) 
+    
+    console.timeEnd('render colors')
+});
+
+d3.csv('FederalFundsEffectiveRate.csv')
+.then(dataArray => { 
+    
+    let maxRateChange = d3.max(dataArray.map(d => +d.fed_funds_rate));
+
+    let normalizedRates = dataArray.map(d => +d.fed_funds_rate/maxRateChange);
+
+    let max = d3.max(normalizedRates);
+    let min = d3.min(normalizedRates);
+
+    let colorScale = d3.scaleSequential(d3.interpolateYlOrRd).domain([min,max]);
+
+    console.time('render colors')
+    dataArray.map(datum => {
+        let tradingDate = new Date(datum.date);
+
+        let calendarDate = 
+            d3.selectAll('.dateBox.date' + tradingDate.toDateString().replaceAll(" ", "_"))
+                .append('div')
+                .text( +datum.fed_funds_rate ? +datum.fed_funds_rate + '%' : '' )
+                .style('font-size', '5px')
+                .style('color', d => {
+                    let color = colorScale(datum.fed_funds_rate/maxRateChange);
+
+                    return color || '#FFF'
+                })
     }) 
     
     console.timeEnd('render colors')
