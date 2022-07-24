@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <meta charset="utf-8" />
-<!-- <meta http-equiv="refresh" content="3600"> -->
 <style>
     body {
         font-size: 16px;
@@ -16,7 +15,6 @@
         display: grid;
         grid-template-columns: repeat(6, 1fr);
         gap: 10px;
-        /* grid-auto-rows: minmax(200px, auto); */
     }
     .yearBox {
         display: flex;
@@ -70,6 +68,9 @@
 <body>
     <p id="title"></p>
 
+    <label for="selector">Choose an index:</label>
+    <div id="selector"></div>
+    
     <div id="main"></div>
 </body>
 
@@ -206,34 +207,51 @@ years.each(year => {
 });
 console.timeEnd('render calendar')
 
+d3.select("#selector")
+    .append('select')
+    .selectAll('select')
+    .data([
+        {indexName: 'S&P 500', fileName: "SP500.csv"},
+        {indexName: 'NASDAQ 100', fileName: "NASDAQ100.csv"},
+        {indexName: 'US Dollar', fileName: "NominalBroadUSDollarIndex.csv"}
+    ])
+    .enter().append('option')
+    .attr('value', option => option.fileName)
+    .text(option => option.indexName)
+    .on('click', event => renderData(event.target.value) );
+
+function renderData(fileName="SP500.csv") {
 console.time('load data')
-d3.csv('NominalBroadUSDollarIndex.csv')
-.then(dataArray => { 
-    
-    let maxPriceChange = d3.max(dataArray.map(d => +d.dollar_index));
-
-    let normalizedDollarIndex = dataArray.map(d => +d.dollar_index/maxPriceChange);
-
-    let max = d3.max(normalizedDollarIndex);
-    let min = d3.min(normalizedDollarIndex);
-
-    let colorScale = d3.scaleSequential(d3.interpolateYlGn).domain([min,max]);
-
-    console.time('render colors')
-    dataArray.map(datum => {
-        let tradingDate = new Date(datum.date);
+    d3.csv(fileName)
+    .then(dataArray => { 
         
-        let calendarDate = 
-            d3.selectAll('.dateBox.date' + tradingDate.toDateString().replaceAll(" ", "_"))
-                .style('background-color', d => {
-                        let bgColor = colorScale(datum.dollar_index/maxPriceChange);
+        let maxValue = d3.max(dataArray.map(d => +d.value));
 
-                        return bgColor || '#FFF'
-                    })
-    }) 
-    
-    console.timeEnd('render colors')
-});
+        let normalizedDollarIndex = dataArray.map(d => +d.value/maxValue);
+
+        let max = d3.max(normalizedDollarIndex);
+        let min = d3.min(normalizedDollarIndex);
+
+        let colorScale = d3.scaleSequential(d3.interpolateYlGn).domain([min,max]);
+
+        console.time('render colors')
+        dataArray.map(datum => {
+            let tradingDate = new Date(datum.date);
+            
+            let calendarDate = 
+                d3.selectAll('.dateBox.date' + tradingDate.toDateString().replaceAll(" ", "_"))
+                    .style('background-color', d => {
+                            let bgColor = colorScale(datum.value/maxValue);
+
+                            return bgColor || '#FFF'
+                        })
+        }) 
+        
+        console.timeEnd('render colors')
+    });
+}
+
+renderData()
 
 d3.csv('FederalFundsRateHistoricalChanges.csv')
 .then(dataArray => { 
