@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <meta charset="utf-8" />
 <!-- <meta http-equiv="refresh" content="3600"> -->
 <style>
@@ -40,7 +41,7 @@
         margin-right: 0.17ch;
     }
     .dateBox {
-        font-size: 9px;
+        font-size: 8px;
         font-weight: normal;
         text-align: justify;
         border: 1px solid black; 
@@ -186,10 +187,43 @@ months.each((currentMonth,monthIndex) => {
                             dateString += "🎄"
                     }
                     return dateString
-                } );
+                });
                 
     })
 });
 
-    d3.select('body').append('div').text("Happy New Year 🥳")
+d3.select('body').append('div').text("Happy New Year 🥳")
+
+let weatherCodes = {
+    'Clear': '☀️',
+    'Clouds': '⛅',
+    'Rain': '🌧️',
+    'Snow': '❄️',
+    'Thunderstorm': '⛈️',
+    'Drizzle': '🌦️'
+}
+
+d3.json('https://api.openweathermap.org/data/3.0/onecall?lat=30.13&lon=-97.76&appid=3fd87d7ba5e736c25a49c20b308dd25e&units=imperial&exclude=current,minutely,hourly')
+.then( weatherData => { console.log(weatherData)
+    weatherData.daily.forEach(weatherDateObject => {
+        let weatherDate = new Date(weatherDateObject.dt * 1000).toDateString();
+        let weatherHighTemp = Math.round(weatherDateObject.temp.max);
+        let weatherLowTemp = Math.round(weatherDateObject.temp.min);
+
+        d3.selectAll('.dateBox.date'+weatherDate.replaceAll(" ", "_"))
+        .selectAll('div')    
+        .append('div')
+            .data([weatherHighTemp])
+            .enter().append('div')
+            .text(temp => temp + "°F")
+            .style('font-size', '7px')
+        .exit()
+            .data(weatherDateObject.weather)
+            .enter().append('div')
+            .text(d => weatherCodes[d.main])
+            .style('font-size', '9px')
+    })
+});
+
+
 </script>
