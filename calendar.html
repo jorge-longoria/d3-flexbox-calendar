@@ -75,7 +75,7 @@
 
 <script>
 //Constant Values
-const daySquareSide = '20px';                                                                   //cell size
+const daySquareSide = '28px';                                                                   //cell size
 
 const monthNames = ["January","February","March",
                     "April",   "May",     "June",
@@ -155,7 +155,6 @@ years.each(year => {
             )
             .enter().append('div')
             .attr('class', 'weekBox')
-            //.style('background-color', (datum,index) => index % 2 == 0 ? "#FFF" : "#EFF");          //alternating week colors
             
 
         //Building up the days...
@@ -236,7 +235,7 @@ d3.csv('NominalBroadUSDollarIndex.csv')
     console.timeEnd('render colors')
 });
 
-d3.csv('FederalFundsEffectiveRate.csv')
+d3.csv('FederalFundsRateHistoricalChanges.csv')
 .then(dataArray => { 
     
     let maxRateChange = d3.max(dataArray.map(d => +d.fed_funds_rate));
@@ -255,8 +254,9 @@ d3.csv('FederalFundsEffectiveRate.csv')
         let calendarDate = 
             d3.selectAll('.dateBox.date' + tradingDate.toDateString().replaceAll(" ", "_"))
                 .append('div')
-                .text( +datum.fed_funds_rate ? +datum.fed_funds_rate + '%' : '' )
-                .style('font-size', '5px')
+                .html( +datum.fed_funds_rate ? +datum.fed_funds_rate + '%' : '' )
+                .style('font-size', '8px')
+                .style('font-weight', 'bold')
                 .style('color', d => {
                     let color = colorScale(datum.fed_funds_rate/maxRateChange);
 
