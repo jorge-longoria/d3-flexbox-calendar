@@ -92,7 +92,7 @@ let monthLabels, weekLabels, dayLabels;
 
 
 //Displays current year at the top of the calendar.
-d3.select('#title').text("Nominal Broad US Dollar Index");  
+d3.select('#title').text("US Stock Indices vs. Fed Funds Rate Changes");  
 
 
 //Starting to build the framework of the calendar years...
@@ -211,9 +211,9 @@ d3.select("#selector")
     .append('select')
     .selectAll('select')
     .data([
-        {indexName: 'S&P 500', fileName: "SP500.csv"},
-        {indexName: 'NASDAQ 100', fileName: "NASDAQ100.csv"},
-        {indexName: 'US Dollar', fileName: "NominalBroadUSDollarIndex.csv"}
+        {indexName: 'S&P 500',      fileName: "SP500.csv"},
+        {indexName: 'NASDAQ 100',   fileName: "NASDAQ100.csv"},
+        {indexName: 'US Dollar',    fileName: "USD.csv"}
     ])
     .enter().append('option')
     .attr('value', option => option.fileName)
@@ -222,29 +222,32 @@ d3.select("#selector")
 
 function renderData(fileName="SP500.csv") {
 console.time('load data')
-    d3.csv(fileName)
+    d3.csv(fileName, headers={'cache': 'no-cache'})
     .then(dataArray => { 
-        
-        let maxValue = d3.max(dataArray.map(d => +d.value));
+        console.timeEnd('load data')
+        let positiveValues = dataArray.filter(d => +d.change >= 1).map(d => +d.change);
+        let negativeValues = dataArray.filter(d => +d.change < 1).map(d => +d.change); 
 
-        let normalizedDollarIndex = dataArray.map(d => +d.value/maxValue);
+        //Color scales
+        let greenScale = d3.scaleSequential(d3.interpolateGreens)
+            .domain([d3.min(positiveValues), d3.max(positiveValues)]);
 
-        let max = d3.max(normalizedDollarIndex);
-        let min = d3.min(normalizedDollarIndex);
-
-        let colorScale = d3.scaleSequential(d3.interpolateYlGn).domain([min,max]);
+        let redScale = d3.scaleSequential(d3.interpolateReds)
+            .domain([d3.max(negativeValues), d3.min(negativeValues)]);
 
         console.time('render colors')
         dataArray.map(datum => {
             let tradingDate = new Date(datum.date);
+            let percentChange = ((datum.change - 1) * 100).toLocaleString('en-US', {maximumFractionDigits: 2});
             
             let calendarDate = 
                 d3.selectAll('.dateBox.date' + tradingDate.toDateString().replaceAll(" ", "_"))
                     .style('background-color', d => {
-                            let bgColor = colorScale(datum.value/maxValue);
+                            let bgColor = datum.change >= 1 ? greenScale(datum.change) : redScale(datum.change);
 
                             return bgColor || '#FFF'
                         })
+                    .attr('title', tradingDate.toDateString() + ": " + percentChange + "%")
         }) 
         
         console.timeEnd('render colors')
@@ -280,6 +283,10 @@ d3.csv('FederalFundsRateHistoricalChanges.csv')
 
                     return color || '#FFF'
                 })
+                .style('-webkit-text-stroke-color', 'white')
+                .style('-webkit-text-fill-color', '#222')
+                .style('-webkit-text-stroke-width', '0.25px')
+                
     }) 
     
     console.timeEnd('render colors')
